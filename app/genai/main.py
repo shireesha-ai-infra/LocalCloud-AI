@@ -1,10 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import requests
+import os
 
 app = FastAPI(title="LocalCloud-AI GenAI API")
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_BASE = os.getenv(
+    "OLLAMA_BASE_URL",
+    "http://host.docker.internal:11434"
+)
+
+OLLAMA_URL = f"{OLLAMA_BASE}/api/generate"
 MODEL = "phi3"
 
 class Question(BaseModel):
