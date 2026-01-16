@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai-api
+  template:
+    metadata:
+      labels:
+        app: genai-api
+    spec:
+      containers:
+        - name: genai-api
+          image: localcloud-ai/genai-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
