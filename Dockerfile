@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY app/ app/
 
-RUN pip install fastapi uvicorn requests
+RUN pip install fastapi uvicorn requests openai dotenv
 
 ENV PYTHONPATH=/app
 

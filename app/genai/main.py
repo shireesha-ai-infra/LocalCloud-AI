@@ -2,16 +2,22 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import requests
 import os
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv(override=True)
+key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI(title="LocalCloud-AI GenAI API")
 
-OLLAMA_BASE = os.getenv(
-    "OLLAMA_BASE_URL",
-    "http://host.docker.internal:11434"
-)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
-OLLAMA_URL = f"{OLLAMA_BASE}/api/generate"
-MODEL = "phi3"
+if not OPENAI_API_KEY:
+    raise RuntimeError("OPENAI_API_KEY not found in environment")
+
+# Initialize openai client
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 class Question(BaseModel):
     question: str
@@ -21,20 +27,19 @@ def ask_llm(payload: Question):
     if not payload.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": MODEL,
-            "prompt": payload.question,
-            "stream": False
-        },
-        timeout=60
-    )
+    try:
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "user", "content":payload.question}
+            ]
+        )
+        return {
+            "answer" : response.choices[0].message.content
+        }
 
-    if response.status_code != 200:
-        raise HTTPException(status_code=500, detail=f"Ollama error: {response.text}")
-    
-    data = response.json()
-    return{
-        "answer": data.get("response", "")
-    }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"OpenAI error: {str(e)}"
+        )

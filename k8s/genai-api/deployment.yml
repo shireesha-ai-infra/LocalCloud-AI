@@ -14,7 +14,10 @@ spec:
     spec:
       containers:
         - name: genai-api
-          image: localcloud-ai/genai-api:latest
+          image: localcloud-ai/genai-api:v3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: openai-secret
